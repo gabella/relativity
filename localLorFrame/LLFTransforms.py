@@ -187,7 +187,10 @@ class LLF():
     
 # Try out a "shape" class that inherits(??) a Lorentz transformation, a Lorentz frame from above.
 class LorShape(LLF):
-    """Assuming a shape in the x'-y' plane of S' that is fixed and just moving vertically in S'
+    """Assuming a shape in the x'-y' plane of S' that is fixed and just moving vertically in S'.
+    Has transformations that will find the shape at fixed time t in the S-frame by intercepting the lines in S'.
+    Also goes the other way, find the shape in the S'-frame as it evolves in time, usually just straight
+    up along the t' axis, depends on mp.
     """
     def __init__(self, beta, ndim, xp0, mp):
         """beta is the speed, ndim is number of dimensions to work in, usually 2 or 3,
@@ -196,15 +199,30 @@ class LorShape(LLF):
         numpoints is the number of points in the shape.  These will be treated like lines in S' and S.
         """
         LLF.__init__(self, beta, ndim)  # Initialize the Local Lorentz frame variables and methods.
-        self.ndim = ndim # ???
-        self.xp0 = xp0
-        self.mp = mp
+        # Parent class has self.beta and self.ndim .
+        # This have to be numpy arrays for handling the lines in the t' dimension.
+        self.xp0 = self.checkIsNumpy(xp0)
+        self.mp = self.checkIsNumpy(mp)
+            
+        self.mp = mp    # This has to be a numpy array.
         self.numpoints = len(xp0)
         
         self.checkSize()
         
         self.x0 = self.calcX0()
         self.m = self.calcM()
+        
+    def checkIsNumpy(self, totest):
+        aa = None
+        if isinstance( totest, type( np.zeros(2) ) ):  # Is a numpy array.
+            aa = totest
+        elif isinstance( totest, type( [1,2] ) ): # Is a list.
+            aa = np.array( totest )
+        else:
+            print('***Error, LorShape, __init__, it is neither a list nor a numpy array, type() is {}'.format(type(totest)) )
+            print('         Setting it to None.')
+            aa = None
+        return(aa)
         
     def checkSize(self):
         if len(self.xp0) != len(self.mp):
@@ -245,8 +263,8 @@ class LorShape(LLF):
             uu = (ttp - xxp0[0])/mmp[0]
             return(uu)
         else:
-            print('***Error, LorShape, ufromt: mm[0] is zero! Divide by zero.')
-            print('***                       : (t-x0[0] is {}, m[0] is {})'.format((tt-xx0[0]), mm[0]) )
+            print('***Error, LorShape, ufromt: mmp[0] is zero! Divide by zero.')
+            print('***                       : (tp-xp0[0] is {}, mp[0] is {})'.format((ttp-xxp0[0]), mmp[0]) )
             return(0.0)
         
     def shapeXAtT(self, tt):
@@ -260,7 +278,7 @@ class LorShape(LLF):
         return(xnew)
         
     def shapeXPAtTP(self, ttp):
-        """Return the shape array in S frame at the given time t (in S).
+        """Return the shape array in S' frame at the given time t' (in S').
         """
         # Run over the points.
         xpnew = np.zeros( (len(self.xp0), self.ndim) )
