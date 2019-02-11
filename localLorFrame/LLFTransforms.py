@@ -187,16 +187,16 @@ class LLF():
     
 # Try out a "shape" class that inherits(??) a Lorentz transformation, a Lorentz frame from above.
 class LorShape(LLF):
-    """Assuming a shape in the x'-y' plane of S' that is fixed and just moving vertically in S'.
-    Has transformations that will find the shape at fixed time t in the S-frame by intercepting the lines in S'.
+    """Assuming a shape in the x'-y' plane of S' frame that is fixed and just moving vertically (along t') in S'.
+    Has transformations that will find the shape at fixed time t in the S-frame by intercepting the lines from lines in S'.
     Also goes the other way, find the shape in the S'-frame as it evolves in time, usually just straight
-    up along the t' axis, depends on mp.
+    up along the t' axis, depends on mp (the slope in the S'-frame).
     """
     def __init__(self, beta, ndim, xp0, mp):
         """beta is the speed, ndim is number of dimensions to work in, usually 2 or 3,
-        xp0 is the numpy array of [t', x', y', ...] at start, u=0, and mp is the slope of these
-        lines in the S' frame, typicall [1, 0, 0)], as the shape at rest in S' just moves vertically.
-        numpoints is the number of points in the shape.  These will be treated like lines in S' and S.
+        xp0 is the numpy array of [t', x', y', ...] at start, u=0 (parameter for the line in S'), and 
+        mp is the slope of these lines in the S' frame, typically [1, 0, 0)], as the shape at rest in 
+        S' just moves vertically.  These will be treated like lines in S' and S.
         """
         LLF.__init__(self, beta, ndim)  # Initialize the Local Lorentz frame variables and methods.
         # Parent class has self.beta and self.ndim .
@@ -243,7 +243,7 @@ class LorShape(LLF):
         
     def ufromt(self, ptindex, tt):
         """Given a point index on the set of shape points, ptindex, calculate the u value for 
-        the given t (in S) value.  Returns u or 0.0 if there is a divide by 0 problem."""
+        the given t value (in S frame).  Returns u or 0.0 if there is a divide by 0 problem."""
         xx0 = self.x0[ptindex]
         mm = self.m[ptindex]
         if mm[0] != 0:
@@ -256,7 +256,7 @@ class LorShape(LLF):
         
     def ufromtp(self, ptindex, ttp):
         """Given a point index on the set of shape points, ptindex, calculate the u value for 
-        the given t (in S) value.  Returns u or 0.0 if there is a divide by 0 problem."""
+        the given t' value (in S' frame).  Returns u or 0.0 if there is a divide by 0 problem."""
         xxp0 = self.xp0[ptindex]
         mmp = self.mp[ptindex]
         if mmp[0] != 0:
@@ -268,7 +268,7 @@ class LorShape(LLF):
             return(0.0)
         
     def shapeXAtT(self, tt):
-        """Return the shape array in S frame at the given time t (in S).
+        """Return the shape array in the S frame at the given time t (in S).
         """
         # Run over the points.
         xnew = np.zeros( (len(self.x0), self.ndim) )
